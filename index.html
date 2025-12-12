@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Rutas Dimerc</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Registro de Rutas Dimerc</h1>
+    <p class="subtitle">Control rápido de guías, facturas y estado de cada ruta.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Nueva ruta</h2>
+      <form id="route-form" class="grid-form">
+        <label>
+          <span>Ruta</span>
+          <input type="text" name="ruta" required>
+        </label>
+        <label>
+          <span>Jaula</span>
+          <input type="text" name="jaula" required>
+        </label>
+        <label>
+          <span>Transportista</span>
+          <input type="text" name="transportista" required>
+        </label>
+        <label>
+          <span>Guía</span>
+          <input type="text" name="guia" required>
+        </label>
+        <label>
+          <span>Factura</span>
+          <input type="text" name="factura" required>
+        </label>
+        <label>
+          <span>Día</span>
+          <input type="date" name="dia" required>
+        </label>
+        <label>
+          <span>Estado</span>
+          <select name="estado" required>
+            <option value="Pendiente">Pendiente</option>
+            <option value="En tránsito">En tránsito</option>
+            <option value="Entregado">Entregado</option>
+          </select>
+        </label>
+        <label>
+          <span>Placa</span>
+          <input type="text" name="placa" required>
+        </label>
+        <button type="submit" class="primary">Agregar ruta</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <div class="table-header">
+        <h2>Rutas registradas</h2>
+        <input id="filter" type="search" placeholder="Filtrar por ruta, transportista o estado">
+      </div>
+      <div class="table-wrapper">
+        <table id="routes-table">
+          <thead>
+            <tr>
+              <th>Ruta</th>
+              <th>Jaula</th>
+              <th>Transportista</th>
+              <th>Guía</th>
+              <th>Factura</th>
+              <th>Día</th>
+              <th>Estado</th>
+              <th>Placa</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <template id="row-template">
+    <tr>
+      <td data-field="ruta"></td>
+      <td data-field="jaula"></td>
+      <td data-field="transportista"></td>
+      <td data-field="guia"></td>
+      <td data-field="factura"></td>
+      <td data-field="dia"></td>
+      <td data-field="estado" class="tag"></td>
+      <td data-field="placa"></td>
+      <td class="actions">
+        <button type="button" class="ghost" data-action="delete">Eliminar</button>
+      </td>
+    </tr>
+  </template>
+
+  <script src="script.js"></script>
+</body>
+</html>
