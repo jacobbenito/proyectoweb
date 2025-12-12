@@ -122,6 +122,10 @@ button.primary {
   box-shadow: 0 10px 30px rgba(37, 99, 235, 0.3);
 }
 
+button.danger {
+  color: var(--danger);
+}
+
 button.ghost {
   background: transparent;
   color: var(--muted);
@@ -138,6 +142,12 @@ button.ghost {
 
 .table-header input {
   width: min(320px, 100%);
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .table-wrapper {
@@ -189,6 +199,11 @@ th {
   width: 120px;
 }
 
+.action-group {
+  display: flex;
+  gap: 8px;
+}
+
 .empty {
   text-align: center;
   color: var(--muted);
@@ -207,7 +222,7 @@ th {
   width: 90px;
 }
 
-.supabase-actions {
+.form-actions {
   display: flex;
   gap: 12px;
   align-items: center;

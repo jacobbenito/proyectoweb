@@ -1,21 +1,40 @@
 # Registro de rutas Dimerc
 
-Aplicación web ligera para registrar y consultar rutas con los campos: **Ruta, NV, Jaula, Transportista, Guía, Factura, Día, Estado, Placa y Foto**.
+Aplicación web ligera para registrar, editar y consultar rutas con los campos: **Ruta, NV, Jaula, Transportista, Guía, Factura, Día, Estado, Placa y Foto**.
 
 ## Uso
 1. Abre `index.html` en tu navegador.
 2. Completa el formulario de "Nueva ruta" (incluye NV y carga opcional de foto) y presiona **Agregar ruta**.
 3. Usa el filtro para buscar por ruta, transportista, estado, NV o placa.
-4. Los datos se guardan en tu navegador (localStorage); puedes eliminar filas con el botón **Eliminar**.
+4. Haz clic en **Editar** para modificar un registro y en **Cancelar edición** para descartar cambios.
+5. Exporta todo a Excel con el botón **Exportar a Excel**; las fotos no se incluyen en el archivo (para que pese menos).
+6. Los datos se guardan en tu navegador (localStorage); puedes eliminar filas con el botón **Eliminar**.
 
-### Sincronizar con Supabase (opcional)
-Si quieres persistir los datos en tu proyecto Supabase y alojarlo luego en otro host:
+### Sincronizar con Google Sheets (opcional)
+Si quieres que la app escriba en una hoja de cálculo además de guardarse en el navegador:
 
-1. En la tarjeta "Conexión opcional a Supabase", escribe tu **Supabase URL** y la **anon/public key**.
-2. Define el nombre de la tabla y del bucket de almacenamiento (por defecto `rutas` y `rutas-fotos`).
-3. Crea la tabla con columnas que coincidan con los campos (ejemplo: `id`, `ruta`, `nv`, `jaula`, `transportista`, `guia`, `factura`, `dia`, `estado`, `placa`, `foto_url`).
-4. Crea el bucket de almacenamiento y márcalo como **public** para que las imágenes sean accesibles; la app subirá la foto a ese bucket y guardará la URL pública en `foto_url`.
-5. Guarda la configuración; a partir de ese momento cada alta intentará insertarse en Supabase sin dejar de almacenar en localStorage.
+1. Crea un nuevo proyecto en [Google Apps Script](https://script.google.com/) y pega este código:
+   ```javascript
+   const SHEET_NAME = 'rutas';
+   const TOKEN = 'secreto-opcional';
+
+   function doPost(e) {
+     const body = JSON.parse(e.postData.contents);
+     if (TOKEN && body.token !== TOKEN) return ContentService.createTextOutput('Token inválido').setMimeType(ContentService.MimeType.TEXT);
+
+     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME) || SpreadsheetApp.getActiveSpreadsheet().insertSheet(SHEET_NAME);
+     if (sheet.getLastRow() === 0) {
+       sheet.appendRow(['id', 'ruta', 'nv', 'jaula', 'transportista', 'guia', 'factura', 'dia', 'estado', 'placa']);
+     }
+
+     const row = [body.id, body.ruta, body.nv, body.jaula, body.transportista, body.guia, body.factura, body.dia, body.estado, body.placa];
+     sheet.appendRow(row);
+     return ContentService.createTextOutput('ok').setMimeType(ContentService.MimeType.TEXT);
+   }
+   ```
+2. En **Deploy → New deployment**, elige **Web app**, establece *Who has access* en **Anyone**, y copia la URL.
+3. En la app, pega esa URL en "URL del Web App" y, si usaste token, escríbelo también. A partir de ahí cada alta, edición o eliminación intentará sincronizarse con la hoja.
+4. Si quieres limpiar la conexión y usar solo almacenamiento local, presiona **Usar solo local**.
 
 ## Publicar gratis en GitHub Pages
 Puedes servir la aplicación como sitio estático con GitHub Pages:

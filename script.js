@@ -2,43 +2,35 @@ const form = document.querySelector('#route-form');
 const tableBody = document.querySelector('#routes-table tbody');
 const filterInput = document.querySelector('#filter');
 const rowTemplate = document.querySelector('#row-template');
-const supabaseForm = document.querySelector('#supabase-form');
-const supabaseStatus = document.querySelector('#supabase-status');
-const clearSupabaseBtn = document.querySelector('#clear-supabase');
+const sheetsForm = document.querySelector('#sheets-form');
+const sheetsStatus = document.querySelector('#sheets-status');
+const clearSheetsBtn = document.querySelector('#clear-sheets');
+const exportBtn = document.querySelector('#export-excel');
+const submitBtn = document.querySelector('#submit-btn');
+const cancelEditBtn = document.querySelector('#cancel-edit');
 
 const STORAGE_KEY = 'registro-rutas-dimerc';
-const SUPABASE_CONFIG_KEY = 'registro-rutas-dimerc-supabase';
+const SHEETS_CONFIG_KEY = 'registro-rutas-dimerc-sheets';
 
 const loadRoutes = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 const saveRoutes = (value) => localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
 
-const loadSupabaseConfig = () => JSON.parse(localStorage.getItem(SUPABASE_CONFIG_KEY) || '{}');
-const saveSupabaseConfig = (value) => localStorage.setItem(SUPABASE_CONFIG_KEY, JSON.stringify(value));
+const loadSheetsConfig = () => JSON.parse(localStorage.getItem(SHEETS_CONFIG_KEY) || '{}');
+const saveSheetsConfig = (value) => localStorage.setItem(SHEETS_CONFIG_KEY, JSON.stringify(value));
 
 let routes = loadRoutes();
-let supabaseClient = null;
-let supabaseConfig = loadSupabaseConfig();
+let sheetsConfig = loadSheetsConfig();
+let editingId = null;
 
 function generateId() {
   if (crypto.randomUUID) return crypto.randomUUID();
   return `route-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function updateSupabaseStatus(message, type = 'muted') {
-  if (!supabaseStatus) return;
-  supabaseStatus.textContent = message;
-  supabaseStatus.dataset.type = type;
-}
-
-function initSupabase() {
-  const { url, key } = supabaseConfig;
-  if (url && key && window.supabase) {
-    supabaseClient = window.supabase.createClient(url, key);
-    updateSupabaseStatus('Conexión lista: se intentará sincronizar en Supabase.', 'success');
-  } else {
-    supabaseClient = null;
-    updateSupabaseStatus('Guardando solo en tu navegador. Configura Supabase para sincronizar.', 'muted');
-  }
+function updateSheetsStatus(message, type = 'muted') {
+  if (!sheetsStatus) return;
+  sheetsStatus.textContent = message;
+  sheetsStatus.dataset.type = type;
 }
 
 function renderRows(list = routes) {
@@ -55,7 +47,7 @@ function renderRows(list = routes) {
     return;
   }
 
-  list.forEach((route, index) => {
+  list.forEach((route) => {
     const row = rowTemplate.content.firstElementChild.cloneNode(true);
 
     row.querySelector('[data-field="ruta"]').textContent = route.ruta;
@@ -84,10 +76,16 @@ function renderRows(list = routes) {
       fotoCell.classList.add('muted');
     }
 
+    row.querySelector('[data-action="edit"]').addEventListener('click', () => startEdit(route.id));
+
     row.querySelector('[data-action="delete"]').addEventListener('click', () => {
-      routes.splice(index, 1);
+      const idx = routes.findIndex((item) => item.id === route.id);
+      if (idx === -1) return;
+      routes.splice(idx, 1);
       saveRoutes(routes);
       renderRows(applyFilter());
+      syncWithSheets({ ...route, action: 'delete' });
+      resetForm();
     });
 
     tableBody.appendChild(row);
@@ -104,6 +102,31 @@ function applyFilter() {
   );
 }
 
+function resetForm() {
+  form.reset();
+  editingId = null;
+  submitBtn.textContent = 'Agregar ruta';
+  cancelEditBtn.hidden = true;
+}
+
+function startEdit(id) {
+  const route = routes.find((item) => item.id === id);
+  if (!route) return;
+  editingId = id;
+  form.elements['ruta'].value = route.ruta || '';
+  form.elements['nv'].value = route.nv || '';
+  form.elements['jaula'].value = route.jaula || '';
+  form.elements['transportista'].value = route.transportista || '';
+  form.elements['guia'].value = route.guia || '';
+  form.elements['factura'].value = route.factura || '';
+  form.elements['dia'].value = route.dia || '';
+  form.elements['estado'].value = route.estado || 'Pendiente';
+  form.elements['placa'].value = route.placa || '';
+  submitBtn.textContent = 'Actualizar ruta';
+  cancelEditBtn.hidden = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 async function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -113,41 +136,21 @@ async function readFileAsDataUrl(file) {
   });
 }
 
-async function syncSupabase(route, photoFile) {
-  if (!supabaseClient) return;
-  const table = supabaseConfig.table || 'rutas';
-  const bucket = supabaseConfig.bucket || 'rutas-fotos';
-  let fotoUrl = null;
+async function syncWithSheets(payload) {
+  const { endpoint, token } = sheetsConfig;
+  if (!endpoint) return;
 
-  if (photoFile) {
-    const path = `${route.id || Date.now()}-${photoFile.name}`;
-    const upload = await supabaseClient.storage.from(bucket).upload(path, photoFile, { upsert: true });
-    if (!upload.error) {
-      const { data } = supabaseClient.storage.from(bucket).getPublicUrl(path);
-      fotoUrl = data.publicUrl;
-    }
-  }
+  try {
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, token }),
+    });
 
-  const { error, data } = await supabaseClient
-    .from(table)
-    .insert({ ...route, foto_url: fotoUrl });
-
-  if (error) {
-    updateSupabaseStatus(`No se pudo sincronizar en Supabase: ${error.message}`, 'warning');
-    return;
-  }
-
-  if (fotoUrl) {
-    const storedRoute = routes.find((item) => item.id === route.id);
-    if (storedRoute) {
-      storedRoute.fotoUrl = fotoUrl;
-      saveRoutes(routes);
-      renderRows(applyFilter());
-    }
-  }
-
-  if (data) {
-    updateSupabaseStatus('Último registro enviado a Supabase.', 'success');
+    if (!response.ok) throw new Error(await response.text());
+    updateSheetsStatus('Sincronizado con Google Sheets.', 'success');
+  } catch (error) {
+    updateSheetsStatus(`No se pudo sincronizar: ${error.message}`, 'warning');
   }
 }
 
@@ -155,36 +158,73 @@ form.addEventListener('submit', async (event) => {
   event.preventDefault();
   const formData = new FormData(form);
   const photoFile = form.elements['foto'].files[0] || null;
-  const newRoute = Object.fromEntries(formData.entries());
-  newRoute.id = generateId();
-  newRoute.foto = photoFile ? await readFileAsDataUrl(photoFile) : null;
-  routes.unshift(newRoute);
-  saveRoutes(routes);
-  form.reset();
-  renderRows(applyFilter());
-  syncSupabase(newRoute, photoFile);
+  const routeData = Object.fromEntries(formData.entries());
+
+  if (editingId) {
+    const index = routes.findIndex((item) => item.id === editingId);
+    if (index === -1) return;
+    const existingPhoto = routes[index].foto || routes[index].fotoUrl || null;
+    routes[index] = {
+      ...routes[index],
+      ...routeData,
+      id: editingId,
+      foto: photoFile ? await readFileAsDataUrl(photoFile) : existingPhoto,
+    };
+    saveRoutes(routes);
+    renderRows(applyFilter());
+    syncWithSheets({ ...routes[index], action: 'update' });
+    resetForm();
+  } else {
+    const newRoute = { ...routeData, id: generateId() };
+    newRoute.foto = photoFile ? await readFileAsDataUrl(photoFile) : null;
+    routes.unshift(newRoute);
+    saveRoutes(routes);
+    form.reset();
+    renderRows(applyFilter());
+    syncWithSheets({ ...newRoute, action: 'insert' });
+  }
 });
 
 filterInput.addEventListener('input', () => renderRows(applyFilter()));
 
-if (supabaseForm) {
-  supabaseForm.addEventListener('submit', (event) => {
+if (sheetsForm) {
+  sheetsForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    const data = Object.fromEntries(new FormData(supabaseForm).entries());
-    supabaseConfig = data;
-    saveSupabaseConfig(data);
-    initSupabase();
+    const data = Object.fromEntries(new FormData(sheetsForm).entries());
+    sheetsConfig = data;
+    saveSheetsConfig(data);
+    if (data.endpoint) {
+      updateSheetsStatus('Conexión guardada. Se sincronizará al guardar cambios.', 'success');
+    } else {
+      updateSheetsStatus('Guardando solo en tu navegador.', 'muted');
+    }
   });
 }
 
-if (clearSupabaseBtn) {
-  clearSupabaseBtn.addEventListener('click', () => {
-    supabaseConfig = {};
-    saveSupabaseConfig({});
-    initSupabase();
-    supabaseForm.reset();
+if (clearSheetsBtn) {
+  clearSheetsBtn.addEventListener('click', () => {
+    sheetsConfig = {};
+    saveSheetsConfig({});
+    sheetsForm.reset();
+    updateSheetsStatus('Guardando solo en tu navegador.', 'muted');
   });
 }
 
-initSupabase();
+if (cancelEditBtn) {
+  cancelEditBtn.addEventListener('click', resetForm);
+}
+
+function exportToExcel() {
+  const data = routes.map(({ foto, ...rest }) => rest);
+  const worksheet = XLSX.utils.json_to_sheet(data);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Rutas');
+  XLSX.writeFile(workbook, 'rutas-dimerc.xlsx');
+}
+
+if (exportBtn) {
+  exportBtn.addEventListener('click', exportToExcel);
+}
+
+updateSheetsStatus(sheetsConfig.endpoint ? 'Conexión guardada. Se sincronizará al guardar cambios.' : 'Guardando solo en tu navegador.', 'muted');
 renderRows();
