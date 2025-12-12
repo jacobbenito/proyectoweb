@@ -27,3 +27,22 @@ Puedes servir la aplicación como sitio estático con GitHub Pages:
 6. Si quieres usar otra rama para publicar (ej. `gh-pages`), crea esa rama con estos archivos y repite los pasos 2‑5.
 
 Si la app queda en una subcarpeta, asegúrate de acceder con la URL completa (`https://tu_usuario.github.io/rutas-dimerc/index.html`).
+
+### Pasos rápidos para subir el repo a GitHub desde tu PC
+Si aún no tienes el código en GitHub, puedes clonarlo o copiarlo y subirlo así:
+
+1. Crea un repositorio vacío en GitHub (sin README inicial), por ejemplo `rutas-dimerc`.
+2. En tu computadora, clona este proyecto (o coloca tus archivos en una carpeta nueva):
+   ```bash
+   git clone <URL-del-repo> rutas-dimerc
+   cd rutas-dimerc
+   ```
+   > Si ya tienes los archivos en una carpeta local, entra a ella y ejecuta `git init` para iniciar el repo.
+3. Añade GitHub como remoto y sube todo:
+   ```bash
+   git remote add origin https://github.com/<tu-usuario>/rutas-dimerc.git
+   git add .
+   git commit -m "Sube app de rutas"
+   git push -u origin main
+   ```
+4. Abre tu repositorio en GitHub y sigue los pasos de **GitHub Pages** (sección anterior) para publicarlo.
