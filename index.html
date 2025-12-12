@@ -21,6 +21,10 @@
           <input type="text" name="ruta" required>
         </label>
         <label>
+          <span>NV</span>
+          <input type="text" name="nv" placeholder="Número de viaje" required>
+        </label>
+        <label>
           <span>Jaula</span>
           <input type="text" name="jaula" required>
         </label>
@@ -52,8 +56,40 @@
           <span>Placa</span>
           <input type="text" name="placa" required>
         </label>
+        <label>
+          <span>Foto (opcional)</span>
+          <input type="file" name="foto" accept="image/*">
+        </label>
         <button type="submit" class="primary">Agregar ruta</button>
       </form>
+    </section>
+
+    <section class="card">
+      <h2>Conexión opcional a Supabase</h2>
+      <p class="muted">Guarda todo en el navegador. Si quieres sincronizar en tu cuenta Supabase, completa los datos.</p>
+      <form id="supabase-form" class="grid-form">
+        <label>
+          <span>Supabase URL</span>
+          <input type="url" name="url" placeholder="https://xxx.supabase.co">
+        </label>
+        <label>
+          <span>Supabase anon/public key</span>
+          <input type="password" name="key" placeholder="ey..." autocomplete="off">
+        </label>
+        <label>
+          <span>Tabla para registros</span>
+          <input type="text" name="table" placeholder="rutas" value="rutas">
+        </label>
+        <label>
+          <span>Bucket para fotos</span>
+          <input type="text" name="bucket" placeholder="rutas-fotos" value="rutas-fotos">
+        </label>
+        <div class="supabase-actions">
+          <button type="submit" class="primary">Guardar configuración</button>
+          <button type="button" id="clear-supabase" class="ghost">Usar solo local</button>
+        </div>
+      </form>
+      <div id="supabase-status" class="status"></div>
     </section>
 
     <section class="card">
@@ -66,6 +102,7 @@
           <thead>
             <tr>
               <th>Ruta</th>
+              <th>NV</th>
               <th>Jaula</th>
               <th>Transportista</th>
               <th>Guía</th>
@@ -73,6 +110,7 @@
               <th>Día</th>
               <th>Estado</th>
               <th>Placa</th>
+              <th>Foto</th>
               <th></th>
             </tr>
           </thead>
@@ -85,6 +123,7 @@
   <template id="row-template">
     <tr>
       <td data-field="ruta"></td>
+      <td data-field="nv"></td>
       <td data-field="jaula"></td>
       <td data-field="transportista"></td>
       <td data-field="guia"></td>
@@ -92,12 +131,14 @@
       <td data-field="dia"></td>
       <td data-field="estado" class="tag"></td>
       <td data-field="placa"></td>
+      <td data-field="foto" class="foto-cell"></td>
       <td class="actions">
         <button type="button" class="ghost" data-action="delete">Eliminar</button>
       </td>
     </tr>
   </template>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.44.4/dist/umd/supabase.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

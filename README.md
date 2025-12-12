@@ -1,12 +1,21 @@
 # Registro de rutas Dimerc
 
-Aplicación web ligera para registrar y consultar rutas con los campos: **Ruta, Jaula, Transportista, Guía, Factura, Día, Estado y Placa**.
+Aplicación web ligera para registrar y consultar rutas con los campos: **Ruta, NV, Jaula, Transportista, Guía, Factura, Día, Estado, Placa y Foto**.
 
 ## Uso
 1. Abre `index.html` en tu navegador.
-2. Completa el formulario de "Nueva ruta" y presiona **Agregar ruta**.
-3. Usa el filtro para buscar por ruta, transportista o estado.
+2. Completa el formulario de "Nueva ruta" (incluye NV y carga opcional de foto) y presiona **Agregar ruta**.
+3. Usa el filtro para buscar por ruta, transportista, estado, NV o placa.
 4. Los datos se guardan en tu navegador (localStorage); puedes eliminar filas con el botón **Eliminar**.
+
+### Sincronizar con Supabase (opcional)
+Si quieres persistir los datos en tu proyecto Supabase y alojarlo luego en otro host:
+
+1. En la tarjeta "Conexión opcional a Supabase", escribe tu **Supabase URL** y la **anon/public key**.
+2. Define el nombre de la tabla y del bucket de almacenamiento (por defecto `rutas` y `rutas-fotos`).
+3. Crea la tabla con columnas que coincidan con los campos (ejemplo: `id`, `ruta`, `nv`, `jaula`, `transportista`, `guia`, `factura`, `dia`, `estado`, `placa`, `foto_url`).
+4. Crea el bucket de almacenamiento y márcalo como **public** para que las imágenes sean accesibles; la app subirá la foto a ese bucket y guardará la URL pública en `foto_url`.
+5. Guarda la configuración; a partir de ese momento cada alta intentará insertarse en Supabase sin dejar de almacenar en localStorage.
 
 ## Publicar gratis en GitHub Pages
 Puedes servir la aplicación como sitio estático con GitHub Pages:
