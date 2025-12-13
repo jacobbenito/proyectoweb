@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Rutas Dimerc</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <h1>Registro de Rutas Dimerc</h1>
+    <p class="subtitle">Control rápido de guías, facturas y estado de cada ruta.</p>
+  </header>
+
+  <main>
+    <section class="card table-card">
+      <div class="table-header">
+        <div>
+          <p class="eyebrow">Listado visible</p>
+          <h2>Rutas registradas</h2>
+          <p class="muted">Consulta, filtra y edita tus rutas sin tener que abrir otros menús.</p>
+        </div>
+        <div class="table-actions">
+          <input id="filter" type="search" placeholder="Filtrar por ruta, transportista o estado">
+          <button type="button" id="import-excel" class="ghost">Importar Excel/CSV</button>
+          <input type="file" id="import-input" accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" hidden>
+          <button type="button" id="export-excel" class="ghost">Exportar a Excel</button>
+        </div>
+      </div>
+      <div class="table-wrapper">
+        <table id="routes-table">
+          <thead>
+            <tr>
+              <th>Ruta</th>
+              <th>NV</th>
+              <th>Jaula</th>
+              <th>Transportista</th>
+              <th>Guía</th>
+              <th>Factura</th>
+              <th>Día</th>
+              <th>Estado</th>
+              <th>Placa</th>
+              <th>Foto</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Nueva ruta</h2>
+      <form id="route-form" class="grid-form">
+        <label>
+          <span>Ruta</span>
+          <input type="text" name="ruta" required>
+        </label>
+        <label>
+          <span>NV</span>
+          <input type="text" name="nv" placeholder="Número de viaje" required>
+        </label>
+        <label>
+          <span>Jaula</span>
+          <input type="text" name="jaula" required>
+        </label>
+        <label>
+          <span>Transportista</span>
+          <input type="text" name="transportista" required>
+        </label>
+        <label>
+          <span>Guía</span>
+          <input type="text" name="guia" required>
+        </label>
+        <label>
+          <span>Factura</span>
+          <input type="text" name="factura" required>
+        </label>
+        <label>
+          <span>Día</span>
+          <input type="date" name="dia" required>
+        </label>
+        <label>
+          <span>Estado</span>
+          <select name="estado" required>
+            <option value="Pendiente">Pendiente</option>
+            <option value="En tránsito">En tránsito</option>
+            <option value="Entregado">Entregado</option>
+          </select>
+        </label>
+        <label>
+          <span>Placa</span>
+          <input type="text" name="placa" required>
+        </label>
+        <label>
+          <span>Foto (opcional)</span>
+          <input type="file" name="foto" accept="image/*">
+        </label>
+        <div class="form-actions">
+          <button type="submit" class="primary" id="submit-btn">Agregar ruta</button>
+          <button type="button" class="ghost" id="cancel-edit" hidden>Cancelar edición</button>
+        </div>
+      </form>
+    </section>
+
+    <details class="card" id="sheets-panel">
+      <summary>Conectar con Google Sheets (opcional)</summary>
+      <div class="details-body">
+        <h2>Sincronización opcional con Google Sheets</h2>
+        <p class="muted">Por defecto todo se guarda en tu navegador. Si quieres que se guarde también en una hoja de cálculo, pega la URL de un Web App de Apps Script.</p>
+        <form id="sheets-form" class="grid-form">
+          <label>
+            <span>URL del Web App (Apps Script)</span>
+            <input type="url" name="endpoint" placeholder="https://script.google.com/macros/s/.../exec">
+          </label>
+          <label>
+            <span>Token opcional (campo "token" en Apps Script)</span>
+            <input type="password" name="token" placeholder="secreto" autocomplete="off">
+          </label>
+          <div class="form-actions">
+            <button type="submit" class="primary">Guardar conexión</button>
+            <button type="button" id="clear-sheets" class="ghost">Usar solo local</button>
+          </div>
+        </form>
+        <div id="sheets-status" class="status"></div>
+      </div>
+    </details>
+  </main>
+
+  <template id="row-template">
+    <tr>
+      <td data-field="ruta"></td>
+      <td data-field="nv"></td>
+      <td data-field="jaula"></td>
+      <td data-field="transportista"></td>
+      <td data-field="guia"></td>
+      <td data-field="factura"></td>
+          <td data-field="dia"></td>
+          <td data-field="estado" class="tag"></td>
+          <td data-field="placa"></td>
+          <td data-field="foto" class="foto-cell"></td>
+          <td class="actions">
+        <div class="action-group">
+          <button type="button" class="ghost" data-action="edit">Editar</button>
+          <button type="button" class="ghost danger" data-action="delete">Eliminar</button>
+        </div>
+          </td>
+        </tr>
+  </template>
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
