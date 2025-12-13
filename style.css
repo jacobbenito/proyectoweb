@@ -53,6 +53,10 @@ main {
   margin: 0 auto;
 }
 
+.table-card {
+  grid-column: 1 / -1;
+}
+
 .card {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -140,6 +144,14 @@ button.ghost {
   flex-wrap: wrap;
 }
 
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+  font-size: 0.75rem;
+  margin: 0;
+}
+
 .table-header input {
   width: min(320px, 100%);
 }
@@ -148,6 +160,7 @@ button.ghost {
   display: flex;
   gap: 8px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .table-wrapper {
@@ -247,9 +260,45 @@ th {
   border-color: rgba(250, 204, 21, 0.3);
 }
 
+details.card {
+  padding: 0;
+  overflow: hidden;
+}
+
+details.card summary {
+  padding: 16px 20px;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+details.card summary::-webkit-details-marker {
+  display: none;
+}
+
+details.card .details-body {
+  border-top: 1px solid var(--border);
+  padding: 16px 20px 20px;
+}
+
+details.card[open] summary {
+  color: var(--text);
+}
+
+@media (max-width: 640px) {
+  .table-actions {
+    justify-content: flex-start;
+  }
+}
+
 @media (min-width: 960px) {
   main {
     grid-template-columns: 400px 1fr;
     align-items: start;
+  }
+
+  .table-card {
+    grid-column: 1 / -1;
   }
 }

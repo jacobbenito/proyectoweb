@@ -6,8 +6,11 @@ const sheetsForm = document.querySelector('#sheets-form');
 const sheetsStatus = document.querySelector('#sheets-status');
 const clearSheetsBtn = document.querySelector('#clear-sheets');
 const exportBtn = document.querySelector('#export-excel');
+const importBtn = document.querySelector('#import-excel');
+const importInput = document.querySelector('#import-input');
 const submitBtn = document.querySelector('#submit-btn');
 const cancelEditBtn = document.querySelector('#cancel-edit');
+const sheetsPanel = document.querySelector('#sheets-panel');
 
 const STORAGE_KEY = 'registro-rutas-dimerc';
 const SHEETS_CONFIG_KEY = 'registro-rutas-dimerc-sheets';
@@ -226,5 +229,51 @@ if (exportBtn) {
   exportBtn.addEventListener('click', exportToExcel);
 }
 
+function normalizeRow(row) {
+  const map = (key) => row[key] ?? row[key?.toLowerCase()] ?? '';
+  return {
+    ruta: map('Ruta') || map('ruta'),
+    nv: map('NV') || map('nv'),
+    jaula: map('Jaula') || map('jaula'),
+    transportista: map('Transportista') || map('transportista'),
+    guia: map('Guía') || map('Guia') || map('guia'),
+    factura: map('Factura') || map('factura'),
+    dia: map('Día') || map('Dia') || map('dia'),
+    estado: map('Estado') || map('estado') || 'Pendiente',
+    placa: map('Placa') || map('placa'),
+  };
+}
+
+async function importFromFile(file) {
+  const buffer = await file.arrayBuffer();
+  const workbook = XLSX.read(buffer, { type: 'array' });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+  const newRecords = rows
+    .map(normalizeRow)
+    .filter((row) => row.ruta && row.guia && row.factura);
+
+  if (!newRecords.length) return;
+
+  const withIds = newRecords.map((item) => ({ ...item, id: generateId(), foto: null }));
+  routes = [...withIds, ...routes];
+  saveRoutes(routes);
+  renderRows(applyFilter());
+  withIds.forEach((record) => syncWithSheets({ ...record, action: 'insert' }));
+}
+
+if (importBtn && importInput) {
+  importBtn.addEventListener('click', () => importInput.click());
+  importInput.addEventListener('change', async (event) => {
+    const [file] = event.target.files;
+    if (!file) return;
+    await importFromFile(file);
+    importInput.value = '';
+  });
+}
+
 updateSheetsStatus(sheetsConfig.endpoint ? 'Conexión guardada. Se sincronizará al guardar cambios.' : 'Guardando solo en tu navegador.', 'muted');
+if (sheetsConfig.endpoint && sheetsPanel) {
+  sheetsPanel.open = true;
+}
 renderRows();

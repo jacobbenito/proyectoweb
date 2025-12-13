@@ -5,13 +5,13 @@ Aplicación web ligera para registrar, editar y consultar rutas con los campos: 
 ## Uso
 1. Abre `index.html` en tu navegador.
 2. Completa el formulario de "Nueva ruta" (incluye NV y carga opcional de foto) y presiona **Agregar ruta**.
-3. Usa el filtro para buscar por ruta, transportista, estado, NV o placa.
+3. Usa el filtro para buscar por ruta, transportista, estado, NV o placa; el listado está siempre visible en la parte superior.
 4. Haz clic en **Editar** para modificar un registro y en **Cancelar edición** para descartar cambios.
-5. Exporta todo a Excel con el botón **Exportar a Excel**; las fotos no se incluyen en el archivo (para que pese menos).
+5. Exporta todo a Excel con el botón **Exportar a Excel** o **Importa Excel/CSV** para carga masiva (usa columnas Ruta, NV, Jaula, Transportista, Guía, Factura, Día, Estado, Placa).
 6. Los datos se guardan en tu navegador (localStorage); puedes eliminar filas con el botón **Eliminar**.
 
 ### Sincronizar con Google Sheets (opcional)
-Si quieres que la app escriba en una hoja de cálculo además de guardarse en el navegador:
+La conexión queda escondida en un acordeón para no estorbar. Si quieres que la app escriba en una hoja de cálculo además de guardarse en el navegador:
 
 1. Crea un nuevo proyecto en [Google Apps Script](https://script.google.com/) y pega este código:
    ```javascript
